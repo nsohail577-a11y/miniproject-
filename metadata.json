@@ -1,0 +1,6 @@
+{
+  "name": "TornDoc AI - Intelligent Line Spacing & Torn Document Reconstruction",
+  "description": "AI-powered line spacing detection, torn edge analysis, and automated document fragment reconstruction system using computer vision.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
