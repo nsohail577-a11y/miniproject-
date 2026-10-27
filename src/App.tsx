@@ -16,15 +16,20 @@ import { ReconstructionWorkspace } from './components/ReconstructionWorkspace';
 import { OcrAnalysis } from './components/OcrAnalysis';
 import { AnalysisReport } from './components/AnalysisReport';
 import { SettingsModal } from './components/SettingsModal';
+import { CameraCaptureModal } from './components/CameraCaptureModal';
 
 const MainContent: React.FC = () => {
   const { activeTab, isProcessing, processingProgress } = useProject();
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isCameraOpen, setIsCameraOpen] = useState<boolean>(false);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
       {/* Top Bar Navigation */}
-      <TopBar onOpenSettings={() => setIsSettingsOpen(true)} />
+      <TopBar
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenCamera={() => setIsCameraOpen(true)}
+      />
 
       {/* Module Navigation Tabs */}
       <NavigationTabs />
@@ -42,8 +47,8 @@ const MainContent: React.FC = () => {
 
       {/* Main View Container */}
       <main className="flex-1 pb-16">
-        {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'upload' && <DocumentUpload />}
+        {activeTab === 'dashboard' && <Dashboard onOpenCamera={() => setIsCameraOpen(true)} />}
+        {activeTab === 'upload' && <DocumentUpload onOpenCamera={() => setIsCameraOpen(true)} />}
         {activeTab === 'preprocessing' && <PreprocessingInspector />}
         {activeTab === 'lines' && <LineSpacingAnalysis />}
         {activeTab === 'edges' && <TornEdgeMatching />}
@@ -51,6 +56,9 @@ const MainContent: React.FC = () => {
         {activeTab === 'ocr' && <OcrAnalysis />}
         {activeTab === 'report' && <AnalysisReport />}
       </main>
+
+      {/* Camera Capture Modal */}
+      <CameraCaptureModal isOpen={isCameraOpen} onClose={() => setIsCameraOpen(false)} />
 
       {/* Settings & Calibration Modal */}
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />

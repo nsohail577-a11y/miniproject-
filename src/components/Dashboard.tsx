@@ -17,9 +17,10 @@ import {
   Calculator,
   Layers,
   Sparkles,
+  Camera,
 } from 'lucide-react';
 
-export const Dashboard: React.FC = () => {
+export const Dashboard: React.FC<{ onOpenCamera: () => void }> = ({ onOpenCamera }) => {
   const {
     fragments,
     matches,
@@ -62,6 +63,13 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={onOpenCamera}
+            className="px-4 py-2 text-xs font-semibold text-cyan-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-cyan-500/40 rounded-md transition-colors whitespace-nowrap inline-flex items-center gap-1.5 shadow-xs"
+          >
+            <Camera className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Click Photo</span>
+          </button>
           <button
             onClick={() => setActiveTab('upload')}
             className="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md transition-colors whitespace-nowrap"
@@ -241,7 +249,21 @@ export const Dashboard: React.FC = () => {
       </section>
 
       {/* Quick Flow Navigator */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <button
+          onClick={onOpenCamera}
+          className="p-4 rounded-lg bg-gradient-to-br from-cyan-950/40 via-slate-900 to-slate-900 border border-cyan-500/40 hover:border-cyan-400 text-left transition-colors group shadow-xs"
+        >
+          <div className="text-xs font-mono text-cyan-400 mb-1">Live Camera Scan</div>
+          <div className="text-sm font-semibold text-white group-hover:text-cyan-300 transition-colors flex items-center justify-between">
+            <span>Click Document Photo</span>
+            <Camera className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+          </div>
+          <p className="text-xs text-slate-400 mt-1">
+            Capture a printed or handwritten page to detect lines and calculate line spacing instantly.
+          </p>
+        </button>
+
         <button
           onClick={() => setActiveTab('lines')}
           className="p-4 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-left transition-colors group"

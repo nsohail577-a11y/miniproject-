@@ -5,9 +5,12 @@
 
 import React from 'react';
 import { useProject } from '../context/ProjectContext';
-import { Play, Sparkles } from 'lucide-react';
+import { Play, Camera } from 'lucide-react';
 
-export const TopBar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSettings }) => {
+export const TopBar: React.FC<{ onOpenSettings: () => void; onOpenCamera: () => void }> = ({
+  onOpenSettings,
+  onOpenCamera,
+}) => {
   const { activeTab, setActiveTab, processAllFragments, isProcessing, fragments } = useProject();
 
   return (
@@ -75,6 +78,13 @@ export const TopBar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
 
       {/* Zone 3: 1 primary action */}
       <div className="flex items-center gap-3 shrink-0">
+        <button
+          onClick={onOpenCamera}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-cyan-500/40 rounded-md transition-colors whitespace-nowrap shadow-xs"
+        >
+          <Camera className="w-3.5 h-3.5 text-cyan-400" />
+          <span>Click Photo</span>
+        </button>
         <button
           onClick={onOpenSettings}
           className="text-xs font-mono text-slate-400 hover:text-white px-2.5 py-1.5 rounded border border-slate-700 hover:border-slate-600 transition-colors"

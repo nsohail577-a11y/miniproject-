@@ -49,6 +49,7 @@ interface ProjectContextType {
   loadBenchmarkSuite: (docId: string) => Promise<void>;
   processFragment: (fragId: string) => Promise<void>;
   processAllFragments: () => Promise<void>;
+  addDocumentAndAnalyze: (dataUrl: string, name?: string) => Promise<void>;
   generateSyntheticTear: (canvas: HTMLCanvasElement, name: string) => Promise<void>;
   evaluations: ReconstructionEvaluation[];
   activeProjectTitle: string;
@@ -120,12 +121,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   /**
-   * Executes the full Computer Vision & Line Spacing Pipeline on a single fragment
+   * Core processing function for any fragment data
    */
-  const processFragment = async (fragId: string) => {
-    const frag = fragments.find((f) => f.id === fragId);
-    if (!frag) return;
-
+  const processSingleFragmentData = async (frag: DocumentFragment): Promise<DocumentFragment> => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     await new Promise((resolve, reject) => {
@@ -203,28 +201,102 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       settings.missingLineGapRatio
     );
 
-    // Update fragment state
-    setFragments((prev) =>
-      prev.map((f) => {
-        if (f.id !== fragId) return f;
-        return {
-          ...f,
-          preprocessedImageUrl: binarizedDataUrl,
-          lines,
-          gaps,
-          metrics,
-          edges,
-          projectionProfile: profile,
-          processingStageImages: {
-            grayscale: grayDataUrl,
-            denoised: denoisedDataUrl,
-            clahe: claheDataUrl,
-            binarized: binarizedDataUrl,
-            morphology: morphDataUrl,
-          },
-        };
-      })
-    );
+    return {
+      ...frag,
+      preprocessedImageUrl: binarizedDataUrl,
+      lines,
+      gaps,
+      metrics,
+      edges,
+      projectionProfile: profile,
+      processingStageImages: {
+        grayscale: grayDataUrl,
+        denoised: denoisedDataUrl,
+        clahe: claheDataUrl,
+        binarized: binarizedDataUrl,
+        morphology: morphDataUrl,
+      },
+    };
+  };
+
+  /**
+   * Executes the full Computer Vision & Line Spacing Pipeline on a single fragment
+   */
+  const processFragment = async (fragId: string) => {
+    const frag = fragments.find((f) => f.id === fragId);
+    if (!frag) return;
+
+    const updated = await processSingleFragmentData(frag);
+    setFragments((prev) => prev.map((f) => (f.id === fragId ? updated : f)));
+  };
+
+  /**
+   * Ingests a captured photo or uploaded document, analyzes its line spacing immediately,
+   * and opens the Line Spacing tab to show results.
+   */
+  const addDocumentAndAnalyze = async (dataUrl: string, name?: string) => {
+    setIsProcessing(true);
+    setProcessingProgress('Analyzing captured photo text lines & line spacing...');
+
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
+
+      const fragId = `frag_${Date.now()}_custom`;
+      const docName = name || `Document_Photo_${new Date().toLocaleTimeString().replace(/[: ]/g, '_')}`;
+
+      const initialFrag: DocumentFragment = {
+        id: fragId,
+        name: docName,
+        originalImageUrl: dataUrl,
+        width: img.naturalWidth || img.width,
+        height: img.naturalHeight || img.height,
+        rotation: 0,
+        offset: { x: 0, y: 0 },
+        scale: 1,
+        edges: [],
+        lines: [],
+        gaps: [],
+        metrics: {
+          totalLines: 0,
+          medianGapPx: 0,
+          medianGapMm: 0,
+          averageGapPx: 0,
+          averageGapMm: 0,
+          minGapPx: 0,
+          minGapMm: 0,
+          maxGapPx: 0,
+          maxGapMm: 0,
+          stdDevGapPx: 0,
+          iqrGapPx: 0,
+          medianBaselineSpacingPx: 0,
+          medianBaselineSpacingMm: 0,
+          anomalyCount: 0,
+          missingLinesCount: 0,
+          dpi: settings.dpi,
+        },
+        projectionProfile: [],
+      };
+
+      const processedFrag = await processSingleFragmentData(initialFrag);
+
+      setFragments((prev) => [processedFrag, ...prev]);
+      setSelectedFragmentId(fragId);
+      setActiveProjectTitle(docName);
+
+      // Instantly navigate to Line Spacing view to show the result
+      setActiveTab('lines');
+    } catch (err) {
+      console.error('Failed to add and analyze document:', err);
+    } finally {
+      setIsProcessing(false);
+      setProcessingProgress('');
+    }
   };
 
   /**
@@ -411,6 +483,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         loadBenchmarkSuite,
         processFragment,
         processAllFragments,
+        addDocumentAndAnalyze,
         generateSyntheticTear,
         evaluations,
         activeProjectTitle,
